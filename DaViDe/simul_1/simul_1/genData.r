@@ -47,7 +47,7 @@ genData <- function( I, J, Q, startingX = NULL, sparsity = 0, percNoise = 0.05, 
 	}
 
 	if( scaling == TRUE ){
-		X0 <- scale(X0, value = nScale)
+		X0 <- scaleData(X0, value = nScale)
 	}
 
 	 
