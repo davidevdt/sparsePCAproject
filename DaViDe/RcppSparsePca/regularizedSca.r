@@ -34,12 +34,7 @@ regularizedSca <- function(X, Q, LASSO = 0, RIDGE = 0, tol = 10^-8, maxIter = 25
 		W0[fixW == 0] <- 0
 	}
 	
-	if( !is.null( seed ) ){
-		set.seed(runif(1, 0, 100))
-	}else{
-		set.seed( seed )
-	}
-	
+
 	results <- estimateSca(	X, XTX, Q, LASSO, RIDGE, tol, maxIter, fixW, nStart, showIt, W0, I, J, XTXdiag )
 	
 	iterCount <- results$iterCount
