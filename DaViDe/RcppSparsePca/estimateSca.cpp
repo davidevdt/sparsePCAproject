@@ -15,11 +15,11 @@ Rcpp::List estimateSca(	arma::mat X, arma::mat XTX, int Q, arma::vec LASSO, doub
 					Rcpp::Nullable<Rcpp::NumericMatrix> fixW, int nStart, bool showIt, arma::mat W0, int I, int J, 
 					arma::vec XTXdiag ){
 	
-	// RNG initialization 
+	// RNG initialization  - I need to understand better how to set this part
 	//arma::arma_rng::set_seed_random();
 	//Rcpp::Environment base_env("package:base");
-    //Rcpp::Function set_seed_r = base_env["set.seed"];
-    //set_seed_r(std::floor(std::fabs(seed)));
+    	//Rcpp::Function set_seed_r = base_env["set.seed"];
+    	//set_seed_r(std::floor(std::fabs(seed)));
 
 	
 	// Initialize objects
