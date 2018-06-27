@@ -36,10 +36,7 @@ regularizedSca <- function(X, Q, LASSO = 0, RIDGE = 0, tol = 10^-8, maxIter = 25
 	
 
 	results <- estimateSca(	X, XTX, Q, LASSO, RIDGE, tol, maxIter, fixW, nStart, showIt, W0, I, J, XTXdiag )
-	
-	iterCount <- results$iterCount
-	
-	
+		
 	try(if( !results$converged ) 
 		warning(' regularizedSca did not converge. Please re-run by increasing maxIter or the convergence criterion <tol> . ', call. = FALSE, immediate. = FALSE, noBreaks. = FALSE, domain = NULL) 				)
 	
