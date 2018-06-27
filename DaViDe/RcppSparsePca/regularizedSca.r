@@ -5,7 +5,7 @@
 # First parse and compile the source code through : 
 # Rcpp::sourceCpp( 'estimateSca.cpp' )
 
-regularizedSca <- function(X, Q, LASSO = 0, RIDGE = 0, tol = 10^-8, maxIter = 250, fixW = NULL, nStart = 100, scaleData = TRUE, nScale = 0, showIt = FALSE, svdStart = TRUE, seed = NULL){
+regularizedSca <- function(X, Q, LASSO = 0, RIDGE = 0, tol = 10^-8, maxIter = 250, fixW = NULL, nStart = 100, scaleData = TRUE, nScale = 0, showIt = FALSE, svdStart = TRUE){
 	
 	if( scaleData ){
 		X <- scaleData(X, value = nScale)
