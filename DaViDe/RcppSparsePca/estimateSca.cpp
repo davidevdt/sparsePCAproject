@@ -96,7 +96,7 @@ Rcpp::List estimateSca(	arma::mat X, arma::mat XTX, int Q, arma::vec LASSO, doub
 						w_new = double(sgn) * max( tmp );
 						w_new /= ( ((1 / double(I)) * XTXdiag(j)) + RIDGE );
 
-						if( abs(cp) < LASSO(q)){
+						if( std::abs(cp) < LASSO(q)){
 							c += (w * X.col(j) );
 						}else{
 							c += ((w - w_new) * X.col(j));
