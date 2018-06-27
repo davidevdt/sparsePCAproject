@@ -1,4 +1,4 @@
-## Code for estimation of Sparse SCA
+## Code for the estimation of Sparse SCA
 
 The files in this folder estimate sparse SCA with RcppArmadillo. This is a great benefit for the speed of your simulations! 
 
