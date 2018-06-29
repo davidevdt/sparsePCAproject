@@ -5,7 +5,8 @@
 # Function as described in the techincal report
 
 sparsePCAMultistart <- function(data, nfactors, RIDGE, LASSO, 
-                      percentage, fixW, maxItrOuterloop, percentageMode = FALSE){
+                      percentage, fixW, maxItrOuterloop, percentageMode = FALSE,
+                      nstarts = 1){
   
   #data preprocessing
   data <- scale(data, scale = FALSE)
@@ -33,10 +34,10 @@ sparsePCAMultistart <- function(data, nfactors, RIDGE, LASSO,
       LASSO <-  determineLasso(it = 200, XTX, W, LASSO, k, q, N,  percentage, data, RIDGE, WINIT, XTXdiag)
   }
 
-    resultList <- vector('list', 5) 
-    minLossVector <- rep(NA, 5)
+    resultList <- vector('list', nstarts) 
+    minLossVector <- rep(NA, nstarts)
 
-    for(z in 1:5){
+    for(z in 1:nstarts){
 
         lossFunctionValue <- c(Inf, rep(Inf, maxItrOuterloop))
         W  <- svd(data)$v

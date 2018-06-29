@@ -4,7 +4,7 @@
 library(gtools)
 source('./SPARSE_PCA_wRandomStart.R')
 require(Matrix)
-
+rm(list=ls())
 
 #adapt the data generating to be more
 #so you can give the sparcity in percentage, and you can set the amount of error
@@ -59,9 +59,12 @@ betterXandP <- function(X, W){
     return(list(X = X, P = P))
 }
 
-generateCommonSpecific(10, 100, 3, 0.05, coefFixed = TRUE, sparsity = c(0.05, 0.5, 0.5))
+generateCommonSpecific(60, 60, 3, 0.05, coefFixed = TRUE, sparsity = c(0.05, 0.5, 0.5))
 
 W
+
+vars <- c(5,5)
+components <- 3
 
 #get all common and distinctive structures
 allCommonSpecific <- function(vars, components){
@@ -79,9 +82,11 @@ allCommonSpecific <- function(vars, components){
             W[, j] <-  rep(cd[commonSpecific[i,j], ], times = vars)
             allpossibleWmatrices[[i]] <- W
     }
+    }
     return(allpossibleWmatrices)
 }
-}
+
+allpossibleWmatrices
 
 allCommonSpecific(c(10, 10), 3)
 
@@ -135,34 +140,129 @@ EigenVectorCV2 <- function(inputDat, ridge, lasso, nrFolds, nfactors, fixW, nSca
 
 
 
-dat <- generateCommonSpecific(x = 10 , nx = 50, nfactors = 3, p = 0.05, coefFixed = TRUE, 
-                       sparsity = c(.6, .6,.6))
-dat
 
-dat <- generateCommonSpecific(10, 100, 3, 0.05, coefFixed = TRUE, sparsity = c(0.05, 0.5, 0.5))
+source('./SPARSE_PCA_wRandomStart.R')
+
 
 dat$X
 dat$W
 
 dat$errorRatio
 
-fit <- sparsePCAMultistart(dat$X, nfactors = 3, RIDGE = 0, LASSO = 0.00,
-                                    percentage, fixW = dat$fixW,
+fit <- sparsePCAMultistart(dat$X, nfactors = 3, RIDGE = 0.1, LASSO = 0.1,
+                                    percentage = dat$percentageZeroes, fixW = dat$fixW,
                                     maxItrOuterloop = 100000,
                                     percentageMode = FALSE)
 
-fit
+
+
+
+dat <- generateCommonSpecific(1000, 100, 3, p = 0.05,
+                              coefFixed = TRUE, sparsity = c(0.6, 0.6, 0.6))
+
+dat$X <- scale(dat$X, scale = FALSE)
+aap <- sparseSCAcpp(dat$X, Q = 3, RIDGE = 0.1, LASSO = rep(0.1 , 3), fixW = dat$fixW, 
+             maxItrOuterloop = 1000, nStarts = 1, print = TRUE, tol = 10^-10)
+
+
+
+fit$loss
+mod
+
+require(Rcpp)
+require(RcppArmadillo)
+
+sourceCpp('./cppTesting/test.cpp')
+
+
+dat$X <- scale(dat$X, scale = FALSE)
+aap <- sparseSCAcpp(dat$X, Q = 3, RIDGE = 0.1, LASSO = rep(0.1 , 3), fixW = dat$fixW, 
+             maxItrOuterloop = 1000, nStarts = 1, print = TRUE, tol = 10^-10)
+
+
+fit <- sparsePCAMultistart(dat$X, nfactors = 3, RIDGE = 0.1, LASSO = 0.1,
+                                    percentage = dat$percentageZeroes, fixW = dat$fixW,
+                                    maxItrOuterloop = 100000,
+                                    percentageMode = FALSE)
+
+system.time( 
+aap <- sparseSCAcpp(dat$X, Q = 3, RIDGE = 0.1, LASSO = rep(0.1 , 3), fixW = dat$fixW, 
+             maxItrOuterloop = 1000, nStarts = 1, print = FALSE, tol = 10^-10)
+)
+
+system.time(
+fit <- sparsePCAMultistart(dat$X, nfactors = 3, RIDGE = 0.1, LASSO = 0.1,
+                                    percentage = dat$percentageZeroes, fixW = dat$fixW,
+                                    maxItrOuterloop = 100000,
+                                    percentageMode = FALSE)
+)
+
+
+
+
+head(aap$W, 40)
+head(fit$W, 40)
+
+dat$W
+
+
+
+dat <- generateCommonSpecific(500, 100, 3, p = 0.05,
+                              coefFixed = TRUE, sparsity = c(0.6, 0.6, 0.6))
+dat$X
+
+dat$fixW
+
+
+lasso <- seq(0, 0.1, by = 0.001)
+folds <- 10
+res <- rep(NA, length(lasso)) 
+stdErrorRes <- rep(NA, length(lasso)) 
+
+for(i in 1:length(lasso)){
+    error <- EigenVectorCV2(dat$X, ridge = 0.1, lasso = lasso[i] ,
+                            nrFolds = folds, nfactors = 3, fixW = dat$fixW)
+    res[i] <- error$MSE
+    stdErrorRes[i] <- error$stdError
+}
+plot(res)
+
+x <- 1:length(lasso)
+plot(x, res,
+    ylim=range(c(res - stdErrorRes, res + stdErrorRes)),
+    pch=19, xlab="Measurements", ylab="Mean +/- SD",
+    main="Scatter plot with std.dev error bars"
+)
+# hack: we draw arrows but with very special "arrowheads"
+arrows(x, res - stdErrorRes, x, res + stdErrorRes, length=0.05, angle=90, code=3)
+
+
+#get the models within the One StdError of the model with the smallest MSE
+withinOneStdError <- res < res[which.min(res)] + stdErrorRes
+lasso[withinOneStdError]
+best <- max(lasso[withinOneStdError])
+best
+
+dat <- generateCommonSpecific(500, 100, 3, p = 0.05, coefFixed = TRUE, sparsity = c(0.6, 0.6, 0.6))
+fit <- sparsePCAMultistart(dat$X, nfactors = 3, RIDGE = 0.1, LASSO = 0.006,
+                                    percentage = dat$percentageZeroes, fixW = dat$fixW,
+                                    maxItrOuterloop = 100000,
+                                    percentageMode = FALSE)
+
+
+correctlyClassified(dat$W, fit$W)
+tuckerCongruence(dat$W, fit$W)
+
 head(dat$W)
 head(fit$W)
 
 
-tuckerCongruence(dat$W, fit$W)
-
-dat$W
-fit$W
-
-
 CVerror <- EigenVectorCV2(dat$X, ridge = 0, lasso = 0.05, nrFolds = 10, nfactors = 3, fixW = dat$fixW)
+
+for(
+
+res <- seq(0, 1, by = 0.01)
+
 
 
 allCombn <- allCommonSpecific(c(5, 5), 3)
