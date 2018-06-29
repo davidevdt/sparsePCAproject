@@ -1,0 +1,9 @@
+## Code for the estimation of Sparse SCA
+
+The files in this folder estimate sparse SCA with RcppArmadillo. This is a great benefit for the speed of your simulations! 
+
+Before uploading the R function 'regularizedSca.r', don't forget to source the Rcpp code by means of : 
+```
+Rcpp::sourceCpp( 'estimateSca.cpp' )
+```
+where estimateSca.cpp contains the C++ code file.  
