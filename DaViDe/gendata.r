@@ -48,7 +48,7 @@ genStructuredData <- function( n, p1, p2, p3, propNoise, vars, prop3, coefs1 = N
 	Xnew <- Xsignal %*% W %*% t(P)
 	#round(svd(Xnew)[[1]],2)
 	#round(svd(Xnew)[[3]],2)[,1:3]			
-	#Wnew <- svd(Xnew)[[3]][,1:3]
+	Wnew <- svd(Xnew)[[3]][,1:3]
 
 	# 4th part : Add Noise 
 	E <- matrix( rnorm(n*p,0,1), n, p )
