@@ -1,4 +1,10 @@
+#################################################################
+# Function to create data according to sparse weights loadings stucture
+# X = XPt(P)
+# with common and distinctive sparse P
+##################################################################
 library(MASS)
+library(gtools)
 
 #divide the columns of matrix by 2norm
 divideByNorm <- function(mat){
@@ -8,7 +14,6 @@ divideByNorm <- function(mat){
 }
 
 #function to get all common and specific block structures
-library(gtools)
 allCommonSpecific <- function(vars, components){
 
     blocks <- length(vars)
@@ -42,7 +47,6 @@ determineGroups <- function(groups){
 #Start of the data generating functions
 #Functions to create data
 ################ This is where the magic happens ####################
-library(MASS)
 
 #orthogonalize two columns of a matrix by using gramm-schmid
 #only use intersection of the non-zero coefficients of the two vectors
@@ -61,7 +65,7 @@ orthogonalize <- function(A, index1, index2){
 
 #create an orthonormal matrix 
 #where the zero's are in fixed position
-makePtest <- function(A){
+makeP <- function(A){
     counter <- 0
     #while matrix A is not orthonormal and max iterations is not reached
     #do orthogonalize all columns with respect to each other
@@ -103,7 +107,7 @@ makeDat <- function(n, p, ncomp, comdis, variances){
     P[comdis == 0] <- 0
     P <- cbind(P, matrix(rnorm(p*(p-ncomp)), p, p-ncomp))
 
-    result <- makePtest(P)
+    result <- makeP(P)
     if(result$status == 1){
         P <- result$A
         Sigma <- P %*% diag(variances) %*% t(P)
@@ -115,34 +119,17 @@ makeDat <- function(n, p, ncomp, comdis, variances){
     }
 }
 
+#function to create variances for the components
+#you have to supply the variances of the components you are interested in
+#the variances of the other non interesting components are on a log scale 
+#starting with mean(variances of interesting components) /2
+#these variances then get scaled such that error ratio is gotten. 
+makeVariance <- function(varianceOfComps, p, error){
+    ncomp <- length(varianceOfComps)
+    varsOfUnimportantComps <- exp(seq(log(0.0001), log(mean(varianceOfComps)/2),
+                                      length.out = p-ncomp))[(p-ncomp):1]
 
-#test the functions out
-library(ggcorrplot)
-library(MASS)
-
-n <- 500
-p <- 20
-ncomp <- 5
-groups <- c(10, 5, 5)
-structures <- allCommonSpecific(groups, ncomp)
-length(structures)
-comdis <- structures[[30]]
-comdis <- sparsify(comdis, sparsity)
-comdis[, 5]  <- 1
-sparsity <- c(.3, .3, 0, 0, .3)
-comdis <- sparsify(comdis, sparsity)
-comdis 
-variances <- c(50, 40, 30, 30, 60, rep(3, p-ncomp))
- 
-datObject <- makeDat(n, p, ncomp, comdis, variances) 
-
-ggcorrplot(cov2cor(datObject$Sigma))
-plot(eigen(datObject$Sigma)$values)
-plot(variances)
-
-
-datObject$P
-
-
-
-
+    x <- (-error*sum(varianceOfComps) / (error-1)) / sum(varsOfUnimportantComps)
+    
+    return(c(varianceOfComps, x * varsOfUnimportantComps))
+}
